@@ -1,5 +1,5 @@
 [
-  "hubot-friendly"
+  "hubot-friendly",
   "hubot-diagnostics",
   "hubot-help",
   "hubot-heroku-keepalive",
