@@ -5,6 +5,7 @@
   "author": "andreash92 <andreas_h92@outlook.com>",
   "description": "ChatOps Bot using Hubot framework",
   "dependencies": {
+    "github": "^9.2.0",
     "hubot": "^2.19.0",
     "hubot-diagnostics": "0.0.1",
     "hubot-friendly": "0.0.1",
