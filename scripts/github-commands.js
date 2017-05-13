@@ -1,5 +1,7 @@
 module.exports = function(robot) {
 
+	'use strict';
+	var slackMsgs = require('./slackMsgs.js');				
 
 	/* set Github Account */
 	var GitHubApi = require("github");
@@ -41,22 +43,21 @@ module.exports = function(robot) {
 			"username": username}, 
 			function(err,res){
 				var jsonsize = Object.keys(res.data).length;
-				var menu = require('./menu.json');
-				menu.attachments[0].actions[0]['options'].push({"text":"","value":""});
 
-				var login;
-				for (i = 0; i < jsonsize; i++) {
+				let menu = slackMsgs.menu();
+				let login;
+				for (var i = 0; i < jsonsize; i++) {
 					login = res.data[i].login;
-					menu.attachments[0].actions[0]['options'].push({"text":login,"value":login})
+					menu.attachments[0].actions[0]['options'].push({"text":login,"value":login});
+      				//TODO: maybe sort them before display
       			}
-      			menu.attachments[0].text = 'Followers';
+      			menu.attachments[0].text = 'Followers of *a*';
       			menu.attachments[0].fallback = '';
       			menu.attachments[0].callback_id = 'followers_cb_id';
       			menu.attachments[0].actions[0].name=' ';
 				menu.attachments[0].actions[0].text=' ';
 
 				res_r.reply(menu);
-
 			});	
 	})
 
