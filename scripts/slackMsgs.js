@@ -1,19 +1,10 @@
-// module.exports = {
-//   sayHelloInEnglish: function() {
-//     return "HELLO";
-//   },
-       
-//   sayHelloInSpanish: function() {
-//     return "Hola";
-//   }
-// };
-
 module.exports = {
 
 
     menu: function(){
         return {
                 "text": "",
+                "mrkdwn": true,
                 "response_type": "in_channel",
                 "attachments": [
                     {
@@ -22,6 +13,10 @@ module.exports = {
                         "color": "#3AA3E3",
                         "attachment_type": "default",
                         "callback_id": "null",
+                        "mrkdwn_in": [
+                            "text",
+                            "pretext"
+                        ],
                         "actions": [
                             {
                                 "name": "",
@@ -42,9 +37,5 @@ module.exports = {
 
     buttons: function(){
         return {} //TODO
-    }
-
-    
+    }   
 }
-
-

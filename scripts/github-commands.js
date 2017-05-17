@@ -34,14 +34,16 @@ module.exports = function(robot) {
 	//     password: ''
 	// });
 
+
 	robot.respond(/gh followers (.*)/i, function(res_r) {
-		var username = res_r.match[1];
-
-		res_r.reply(username)
-
+		var username = res_r.match[1];	
 		github.users.getFollowersForUser({ 
 			"username": username}, 
-			function(err,res){
+			function(err, res){
+				if (err){
+					res_r.send('Error: ' + JSON.parse(err).message);
+					return false;
+				}
 				var jsonsize = Object.keys(res.data).length;
 
 				let menu = slackMsgs.menu();
@@ -49,9 +51,10 @@ module.exports = function(robot) {
 				for (var i = 0; i < jsonsize; i++) {
 					login = res.data[i].login;
 					menu.attachments[0].actions[0]['options'].push({"text":login,"value":login});
+
       				//TODO: maybe sort them before display
       			}
-      			menu.attachments[0].text = 'Followers of *a*';
+				menu.attachments[0].text = "Followers of "+ "*" + username + "*";      			
       			menu.attachments[0].fallback = '';
       			menu.attachments[0].callback_id = 'followers_cb_id';
       			menu.attachments[0].actions[0].name=' ';
