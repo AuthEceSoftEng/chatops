@@ -1,6 +1,5 @@
 module.exports = {
 
-
     menu: function(){
         return {
                 "text": "",

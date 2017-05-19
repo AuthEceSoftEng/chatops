@@ -28,6 +28,8 @@ module.exports = function(robot) {
 
   	robot.respond(/trello add token (.*)/i, function(res_r) {
   		var token = res_r.match[1];
+  		//***IMPORTANT*** 
+  		//the next .env assignment doesnt work with HEROKU!
   		process.env.HUBOT_TRELLO_TOKEN = token;
   		//TODO: add tokens based on user
   	})
