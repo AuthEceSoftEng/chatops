@@ -8,6 +8,7 @@
     "github": "^9.2.0",
     "hubot": "^2.19.0",
     "hubot-diagnostics": "0.0.1",
+    "hubot-env": "0.0.2",
     "hubot-friendly": "0.0.1",
     "hubot-google-images": "^0.2.6",
     "hubot-google-translate": "^0.2.0",

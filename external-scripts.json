@@ -1,4 +1,5 @@
 [
+  "hubot-env",
   "hubot-friendly",
   "hubot-diagnostics",
   "hubot-help",
