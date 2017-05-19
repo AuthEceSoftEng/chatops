@@ -37,7 +37,7 @@ module.exports = {
 
     buttons: function(){
         return {} //TODO
-    }
+    },
 
     basicMessage: function(){
     return {
