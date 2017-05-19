@@ -25,6 +25,6 @@
     "octonode": "^0.7.12"
   },
   "engines": {
-    "node": "0.10.x"
+    "node": "6.x"
   }
 }
