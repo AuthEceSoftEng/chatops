@@ -1,26 +1,29 @@
+module.exports = function(robot) {
 
-var Trello = require("node-trello");
 
-var key = process.env.HUBOT_TRELLO_KEY;
-var token = process.env.HUBOT_TRELLO_TOKEN;
+    var Trello = require("node-trello");
 
-//TODO: Get token using OAuth -> check here: https://glitch.com/edit/#!/trello-oauth
+    var key = process.env.HUBOT_TRELLO_KEY;
+    var token = 'jvh';process.env.HUBOT_TRELLO_TOKEN;
 
-var t = new Trello(key, token);
+    var t = new Trello(key, token);
 
-t.get("/1/members/me", function(err, data) {
-  if (err) {
-  	console.log(err)
-    throw err;
-  };
-  console.log(data);
-});
+    robot.respond(/trello account name/i, function(res_r) {
 
-// URL arguments are passed in as an object.
-t.get("/1/members/me", { cards: "open" }, function(err, data) {
-  if (err) {
-  	console.log(err); 
-  	throw err;
-  };
-  console.log(data);
-})
+        t.get("/1/members/me", function(err, data) {
+            if (err) {
+                //console.log(err);
+                //throw err;
+                res_r.send('Error: ' + err['responseBody']);
+                return false;
+            };
+            //res_r.send(res);
+            res_r.send(data['fullName']);
+        });
+    })
+
+
+    /*/
+    /// TODO: add more functionality 
+    /*/
+}
