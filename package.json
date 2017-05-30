@@ -23,7 +23,8 @@
     "hubot-slack": "^4.3.4",
     "node-trello": "^1.1.2",
     "octokat": "^0.6.5",
-    "octonode": "^0.7.12"
+    "octonode": "^0.7.12",
+    "request": "^2.81.0"
   },
   "engines": {
     "node": "6.x"
