@@ -1,36 +1,99 @@
-module.exports = function(robot) {
+// Commanfs: 
+// `trello login`
 
-  	robot.respond(/trello get token/i, function(res_r) {
-	
-		var slackMsgs = require('./slackMsgs.js');				
+var slackMsgs = require('./slackMsgs.js');
+var url = require('url');
+var Trello = require('node-trello');
+var Promise = require('bluebird');
+var request = require('request-promise');
+var encryption = require('./encryption.js');
+var mongo = require('mongoskin');
+var cache = require('./cache.js').getCache()
+Promise.promisifyAll(mongo);
 
-		var key = process.env.HUBOT_TRELLO_KEY;
+// config
+var uri = process.env.MONGODB_URI;
+var trelloKey = process.env.HUBOT_TRELLO_KEY;
+var trello_url = 'https://api.trello.com'
+var app_key = process.env.HUBOT_TRELLO_KEY;
+var oauth_secret = process.env.HUBOT_TRELLO_OAUTH;
+var host_url = process.env.HUBOT_HOST_URL
 
-		var scope = 'read,write,account';
-		var name = 'Hubot';
-		var expr = '30days';
-		var cb_method = '';
-		var return_url = '';
-		var url = `https://trello.com/1/authorize?expiration=${expr}&name=${name}&scope=${scope}&key=${key}&response_type=token`;
+module.exports = function (robot) {
 
-		var msg = slackMsgs.basicMessage();
+    var oauth_secrets = {};
+    var loginCallback = `${host_url}/hubot/trello-token`;
+    var scope = 'read,write,account'
+    var expr = 'never' // expiration
+    var TrelloOAuth = require('./trello-oauth.js')
+    var tOAuth = new TrelloOAuth(app_key, oauth_secret, loginCallback, 'Hubot', scope, expr);
 
-		msg.attachments[0].pretext = "Please get a token to authorize your Trello account";
-		msg.attachments[0].title = "Trello Token"; 
-		msg.attachments[0].title_link = url; 
-		msg.attachments[0].text = "Copy the token from the link above and run\n *trello add token <YOUR TOKEN>*";
-		msg.attachments[0].footer = "Trello";
-		msg.attachments[0].footer_icon = "https://d2k1ftgv7pobq7.cloudfront.net/meta/u/res/images/b428584f224c42e98d158dad366351b0/trello-mark-blue.png";
-		res_r.send(msg);
-	})
+    robot.respond(/trello login/, function (res) {
+        trelloOAuthLogin(res.message.user.id)
+    })
 
+    robot.on('trelloOAuthLogin', function (userid) {
+        trelloOAuthLogin(userid)
+    })
 
+    function trelloOAuthLogin(userid) {
+        tOAuth.getRequestToken(function (err, data) {
+            oauth_secrets['id'] = userid
+            oauth_secrets[data.oauth_token] = data.oauth_token_secret;
 
-  	robot.respond(/trello add token (.*)/i, function(res_r) {
-  		var token = res_r.match[1];
-  		//***IMPORTANT*** 
-  		//the next .env assignment doesnt work with HEROKU!
-  		process.env.HUBOT_TRELLO_TOKEN = token;
-  		//TODO: add tokens based on user
-  	})
+            var loginMsg = `Click <${data.redirect}|here> to authenticate your Trello account`
+            robot.messageRoom(userid, loginMsg);
+        })
+    }
+
+    robot.router.get('/hubot/trello-token', function (req, res_r) {
+        var db = mongo.MongoClient.connect(uri);
+
+        let args = req.query;
+        let query = url.parse(req.url, true).query;
+        let token = query.oauth_token;
+        args['oauth_token_secret'] = oauth_secrets[token];
+        tOAuth.getAccessToken(args, function (err, data) {
+            if (err) throw err;
+            let userName = oauth_secrets['username'];
+            let userId = oauth_secrets['id'];
+
+            var options = {
+                method: 'GET',
+                url: `${trello_url}/1/members/me?key=${trelloKey}&token=${data['oauth_access_token']}`,
+                json: true
+            }
+            request(options).then(res => {
+                var values = {
+                    trello_member_id: res.id,
+                    trello_username: res.username,
+                    trello_token: data['oauth_access_token']
+                }
+                cache.set(userId, values)
+
+                encryption.encrypt(data['oauth_access_token'])
+                    .then(token => {
+                        db.bind('users');
+                        db.users.findAndModifyAsync(
+                            { _id: userId },
+                            [["_id", 1]],
+                            { $set: { trello_token: token, trello_username: res.username, trello_member_id: res.id } },
+                            { upsert: true })
+                            .then(res => {
+                                // console.log(res)
+                            }).catch(err => { //TODO better error handling
+                                console.log(err)
+                            }).done(() => {
+                                db.close();
+                            })
+                    });
+            }).catch(err => {
+                console.log(err)
+            })
+            //TODO error
+
+        })
+        res_r.redirect('/token%20received');
+    });
+
 }

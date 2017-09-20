@@ -1,0 +1,26 @@
+ how to - hubot, slack, heroku and slack's interactive messages
+ . create GitHub repository
+ . clone GitHub repository locally
+ . run: yo hubot (adapter = slack)
+ . git add .
+   git commit -m "init commit"
+   git push
+ . create a new heroku app: https://dashboard.heroku.com/new-app
+ . choose a deployment method: https://dashboard.heroku.com/apps/<app name>/deploy/
+ 	Suggested: Github or Heroku Git but if you are using Github it will be easier to deploy through Github
+ . Optional: Enable Automatic Deployment
+ . Deploy Branch
+ . Create a new slack app https://api.slack.com/apps?new_app=1
+ . Enable interactive messages -> https://api.slack.com/apps -> Select your App -> Interactive Messages -> Enable Interactive Messages
+ . Request URL: https://andreasbot.herokuapp.com/hubot/slack-msg-callback -> press Enable Interactive Messages
+ . Bot Users -> Add Bot User
+ . Install App -> 	Install App to Team -> Authorize
+ . Copy Install App -> <Bot User OAuth Access Token> && Basic Info -> <Verification Token> somewhere safe
+ . if you haven't install heroku CLI insall it now https://devcenter.heroku.com/articles/heroku-cli 
+ . $ heroku login
+   $ heroku config:set HUBOT_SLACK_TOKEN=<Bot User OAuth Access Token> --app <app name>
+   $ heroku config:set HUBOT_SLACK_VERIFY_TOKEN=<Verification Token> --app <app name>
+ . For Interactive messages copy the following file into <your hubot folder>/Scripts directory
+	event-listener.js
+	slack-msg-callback.js	
+	example-buttons.json

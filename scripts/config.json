@@ -1,0 +1,60 @@
+{
+    "_comments": "To DISABLE error posting set errorsChannel to false",
+    "errorsChannel": "hubot-errors",
+    "errorMessage": ":disappointed: An error occured. Please check server's Logs. ",
+    "tokenAddedMessage": "Your token has been succesfully received! :thumbsup:",
+    "GithubApp": {
+        "tokenStoredMsg": "Github App Generated and Stored a new Token",
+        "privateKeyDir": "hubot-integration.2017-07-25.private-key.pem",
+        "AppId": 4664
+    },
+    "jenkins": {
+        "jobNotFoundMsg": "Job/Build not found. :thinking_face: Please try again.\nMake sure to tell me the correct job/build name.",
+        "badCredentialsMsg": "Hey, it seems that your Jenkins credentials are wrong!\nSay `jenkins login` to login again.",
+        "somthing": ""
+    },
+    "standups": {
+        "timeout": 900000
+    },
+    "defaultStandup": {
+        "_id": "defaultStandup",
+        "name": "Daily Report",
+        "days": "1-5",
+        "channel": "general",
+        "time": "09:30",
+        "active": true,
+        "questions": [
+            {
+                "text": "What did you accomplish yesterday?",
+                "color": "good"
+            },
+            {
+                "text": "What will you do today?",
+                "color": "439FE0"
+            },
+            {
+                "text": "What obstacles are impeding your progress?",
+                "color": "danger"
+            },
+            {
+                "text": "Is there anything else you want to mention?",
+                "color": "warning"
+            }
+        ]
+    },
+    "defaultTrelloSumUp": {
+        "_id": "defaultSumUp",
+        "days": "*",
+        "time": "17:24",
+        "active": true,
+        "channel": "general"
+    },
+    "defaultGithubSumUp": {
+        "_id": "defaultSumUp",
+        "days": "*",
+        "time": "17:24",
+        "active": true,
+        "channel": "general"
+    },
+    "timezone":"Europe/Athens"
+}
