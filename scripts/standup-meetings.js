@@ -501,6 +501,7 @@ module.exports = function (robot) {
 
                 msg.reply(`Thanks for reporting on ${standup.name} standup! Keep up the good work :wink:`)
 
+                // Display standup in channel
                 Promise.each(report, function (element) {
                     var attachment = slackMsg.attachment()
                     attachment.title = element.q

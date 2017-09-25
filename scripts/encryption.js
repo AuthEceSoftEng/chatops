@@ -1,6 +1,6 @@
 'use strict'
 
-const crypto = require('crypto')
+const crypto = require('crypto') 
 
 const key = process.env.ENCRYPTION_KEY; // Must be   256 bytes (32 characters)
 const algorithm = process.env.ENCRYPTION_ALGORITHM

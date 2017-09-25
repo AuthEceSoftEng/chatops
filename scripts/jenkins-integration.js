@@ -375,7 +375,7 @@ module.exports = function (robot) {
 
         request(options)
             .then(data => {
-                res.reply(`I'm on it!`)
+                robot.messageRoom(userid, `I'm on it!`)
             })
             .catch(error => {
                 errorHandler(userid, error)

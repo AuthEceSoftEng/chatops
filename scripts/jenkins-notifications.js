@@ -12,8 +12,19 @@ var HUBOT_JENKINS_COLOR_DEFAULT = process.env.HUBOT_JENKINS_COLOR_DEFAULT || "#f
 module.exports = function (robot) {
 
     return robot.router.post("/hubot/jenkins-notifications", function (req, res) {
-        var color, params, payload, status
+        var notificationIP = req.headers['x-forward-for']
+        
+        /* doesn't work when x-forward-for return ip and jenkins_url is a url. 
+         *  must modified and checked before use the bellow if-statement. 
+         */ 
+        // if (jenkins_url.includes(notificationIP)){
+            handleNotification(req,res)
+        // }
+    })
 
+
+    function handleNotification(req,res) {
+        var color, params, payload, status
         var room = null
         if (req.query.room && !req.query.user) {
             room = req.query.room
@@ -130,8 +141,5 @@ module.exports = function (robot) {
 
         robot.messageRoom(room, msg)
 
-        // for debugging:
-        // console.log('\n', data) 
-
-    })
+    }
 }

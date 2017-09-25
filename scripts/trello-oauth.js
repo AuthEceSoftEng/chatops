@@ -1,4 +1,5 @@
 /* Forked from https://github.com/adunkman/node-trello
+ * Modified by andreash92
  * Added support for: 
  *    OAuth scopes 
  *    Expiration Token 

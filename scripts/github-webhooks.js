@@ -4,6 +4,7 @@ var slackMsgs = require('./slackMsgs.js')
 var color = require('./colors.js')
 var Promise = require('bluebird')
 var cache = require('./cache.js').getCache()
+var crypto = require('crypto')
 
 var githubURL = 'https://www.github.com/'
 
@@ -16,13 +17,19 @@ module.exports = function (robot) {
 			}
 			eventBody = {
 				eventType: req.headers["x-github-event"],
-				signature: req.headers["X-Hub-Signature"],
-				deliveryId: req.headers["X-Github-Delivery"],
+				signature: req.headers["x-hub-signature"],
+				deliveryId: req.headers["x-github-delivery"],
 				payload: req.body,
 				query: querystring.parse(url.parse(req.url).query)
 			};
 			res.send('OK');
-			webhooksEventsBranching(eventBody);
+
+			if (eventBody.signature) {
+				var isSignatureMatched = evaluateWebhookSignature(eventBody.signature, JSON.stringify(eventBody.payload), "aloha")
+			} 
+			if (isSignatureMatched || !eventBody.signature) {
+				webhooksEventsBranching(eventBody)
+			}
 		} catch (e) {
 			// res.send('You supplied invalid JSON to this endpoint.');
 			error = e;
@@ -32,6 +39,10 @@ module.exports = function (robot) {
 		return res.end("");
 	});
 
+	function evaluateWebhookSignature(signature, payload, secret) {
+		const computedSignature = `sha1=${crypto.createHmac("sha1", secret).update(payload).digest("hex")}`;
+		return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(computedSignature));
+	}
 
 	function webhooksEventsBranching(eventBody) {
 		switch (eventBody.eventType) {

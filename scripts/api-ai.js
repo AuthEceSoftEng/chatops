@@ -22,7 +22,13 @@ module.exports = robot => {
         var regex = new RegExp(robot.name + " (.*)", "i")
         if (res.message.text.match(regex)) { // captures only direct messages and not messages in channels 
             var msg = res.message.text.match(regex)[1]
-            apiaiAsk(msg, res)
+            if (!msg.includes('has snoozed notifications. Send one anyway?')) {
+                /* this ↑↑ happens sometimes when bot auto-post (with cron-jobs) 
+                 * trello/github sumups and triggers api.ai but it shouldn't.
+                 * Until a better solution is found, this should work.
+                 */
+                apiaiAsk(msg, res)
+            }
             console.log('api.ai', msg)
         }
     })
