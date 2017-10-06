@@ -5,5 +5,5 @@
   "hubot-heroku-keepalive",
   "hubot-google-translate",
   "hubot-mongodb-brain",
-  "hubot-rules",
+  "hubot-rules"
 ]
