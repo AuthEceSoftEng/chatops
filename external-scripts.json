@@ -1,14 +1,9 @@
 [
   "hubot-env",
-  "hubot-friendly",
   "hubot-diagnostics",
   "hubot-help",
   "hubot-heroku-keepalive",
-  "hubot-google-images",
   "hubot-google-translate",
-  "hubot-pugme",
-  "hubot-maps",
-"hubot-mongodb-brain",
+  "hubot-mongodb-brain",
   "hubot-rules",
-  "hubot-shipit"
 ]
