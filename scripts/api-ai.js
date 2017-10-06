@@ -1,8 +1,8 @@
 var apiai = require('apiai')
-var util = require('util')
 var path = require('path')
 var cache = require('./cache.js').getCache()
 
+if (!process.env.APIAI_TOKEN) { return }
 var apiai_token = process.env.APIAI_TOKEN
 var errorChannel = process.env.HUBOT_ERRORS_CHANNEL
 var SCORE_THRESHOLD = 0.75
@@ -22,11 +22,9 @@ module.exports = robot => {
         var regex = new RegExp(robot.name + " (.*)", "i")
         if (res.message.text.match(regex)) { // captures only direct messages and not messages in channels 
             var msg = res.message.text.match(regex)[1]
-            if (!msg.includes('has snoozed notifications. Send one anyway?')) {
-                /* this ↑↑ happens sometimes when bot auto-post (with cron-jobs) 
-                 * trello/github sumups and triggers api.ai but it shouldn't.
-                 * Until a better solution is found, this should work.
-                 */
+            var userid = res.message.user.id
+            if (userid != 'USLACKBOT') {
+                // avoid msgs from slackbot (i.e. furling links). 
                 apiaiAsk(msg, res)
             }
             console.log('api.ai', msg)
@@ -140,4 +138,17 @@ module.exports = robot => {
         apiaiEvent(activeAction[userid], res)
     })
 
+
+    function missingEnvironmentForApi() {
+        var missingAnything;
+        missingAnything = false;
+        if (process.env.APIAI_TOKEN == null) {
+            robot.logger.warning("SomeAPI Client ID is missing: Ensure that SOMEAPI_CLIENT_ID is set.");
+            missingAnything |= true;
+        }
+        return missingAnything;
+    }
+
 }
+
+
