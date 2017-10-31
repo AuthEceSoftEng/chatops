@@ -1,9 +1,13 @@
 'use strict'
 
-const crypto = require('crypto') 
+const crypto = require('crypto')
 
 const key = process.env.ENCRYPTION_KEY; // Must be   256 bytes (32 characters)
 const algorithm = process.env.ENCRYPTION_ALGORITHM
+
+if (!key || !algorithm) {
+  return
+}
 
 function encrypt(text) {
   return new Promise((resolve, reject) => {
@@ -15,11 +19,11 @@ function encrypt(text) {
   })
 }
 function encryptSync(text) {
-    if (!text) return null
-    var cipher = crypto.createCipher(algorithm, key)
-    var crypted = cipher.update(text, 'utf8', 'hex')
-    crypted += cipher.final('hex')
-    return crypted
+  if (!text) return null
+  var cipher = crypto.createCipher(algorithm, key)
+  var crypted = cipher.update(text, 'utf8', 'hex')
+  crypted += cipher.final('hex')
+  return crypted
 }
 
 function decrypt(text) {

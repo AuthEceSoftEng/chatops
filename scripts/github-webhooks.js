@@ -7,6 +7,7 @@ var cache = require('./cache.js').getCache()
 var crypto = require('crypto')
 
 var githubURL = 'https://www.github.com/'
+var webhookSecret = process.env.GITHUB_WEBHOOK_SECRET || 'noset'
 
 module.exports = function (robot) {
 	robot.router.post('/hubot/github-hooks', function (req, res) {
@@ -25,8 +26,8 @@ module.exports = function (robot) {
 			res.send('OK');
 
 			if (eventBody.signature) {
-				var isSignatureMatched = evaluateWebhookSignature(eventBody.signature, JSON.stringify(eventBody.payload), "aloha")
-			} 
+				var isSignatureMatched = evaluateWebhookSignature(eventBody.signature, JSON.stringify(eventBody.payload), webhookSecret)
+			}
 			if (isSignatureMatched || !eventBody.signature) {
 				webhooksEventsBranching(eventBody)
 			}
@@ -186,9 +187,6 @@ module.exports = function (robot) {
 					`by <${senderURL}|${senderUsername}> on ${issueType} <${issueURL}|#${issueNum}: ${issueTitle}> `
 				attachment.text = payload.comment.body
 				attachment.color = color.getHex('gray')
-				msg.attachments.push(attachment)
-				attachment = slackMsgs.attachment()
-				attachment.color = color.getHex('blue')
 
 				if (payload.issue.assignees.length) {
 					attachment.fields.push({
@@ -507,9 +505,8 @@ module.exports = function (robot) {
 		// 	} 
 
 		msg.attachments.push(attachment)
-
 		robot.messageRoom(room, msg)
-
+		checkForUserMentions(msg, payload.repository.name, issueNum)
 	};
 
 
@@ -525,17 +522,16 @@ module.exports = function (robot) {
 			var id = userids[i]
 
 			var user = cache.get(id)
-			var cachedGithubUsername
 			try {
 				var cachedGithubUsername = user.github_username
 				if (cachedGithubUsername == githubUsername) {
 					return robot.brain.userForId(id)
 				}
 			} catch (e) {
-
+				robot.logger.error(`script: github-webhooks.js in getSlackUser() ` + e)
 			}
-			return false
 		}
+		return false
 	}
 
 

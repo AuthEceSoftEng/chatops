@@ -26,7 +26,6 @@
 
 var slackmsg = require("./slackMsgs.js");
 var request = require('request-promise');
-var Trello = require('node-trello');
 var cache = require('./cache.js').getCache()
 var c = require('./config.json')
 var mongoskin = require('mongoskin');
@@ -38,16 +37,19 @@ var color = require('./colors.js')
 const Promise = require("bluebird");
 
 // config
-var mongodb_uri = process.env.MONGODB_URI
+var mongodb_uri = process.env.MONGODB_URL
 var hubot_host_url = process.env.HUBOT_HOST_URL;
-var TRELLO_API = 'https://api.trello.com/1'
 var trelloKey = process.env.HUBOT_TRELLO_KEY;
 var trelloTeam = process.env.HUBOT_TRELLO_TEAM
+var TRELLO_API = 'https://api.trello.com/1'
 var trello_headers = {
     'Accept': 'application/json',
     'Content-Type': 'application/json'
 }
 
+if (!mongodb_uri || !hubot_host_url || !trelloKey || !trelloTeam) {
+    return
+}
 module.exports = function (robot) {
 
     /*************************************************************************/
@@ -146,6 +148,21 @@ module.exports = function (robot) {
         }).catch(e => { })
     })
 
+    // dialogflow listener: not tested
+    robot.on('showTrelloNotifications', function (data, res) {
+        var userid = res.message.user.id
+        var limit = data.parameters.limit
+        var read_filter = data.parameters.read_filer
+        var query = { read_filter: read_filter, filter: 'mentionedOnCard' }
+        if (!read_filter) {
+            query.read_filter = 'all'
+        }
+        if (limit) {
+            query.limit = limit
+        }
+        getNotifications(res.message.user.id, query)
+    })
+    
 
     robot.respond(/trello( last (\d+)|) (all |unread |read |)mentions?/i, function (res) {
         var userid = res.message.user.id
@@ -161,6 +178,20 @@ module.exports = function (robot) {
         getNotifications(res.message.user.id, query)
     })
 
+    // dialogflow listener: not tested
+    robot.on('showTrelloMentions', function (data, res) {
+        var userid = res.message.user.id
+        var limit = data.parameters.limit
+        var read_filter = data.parameters.read_filer
+        var query = { read_filter: read_filter, filter: 'mentionedOnCard' }
+        if (!read_filter) {
+            query.read_filter = 'all'
+        }
+        if (limit) {
+            query.limit = limit
+        }
+        getNotifications(res.message.user.id, query)
+    })
 
     robot.respond(/\btrello sum-?ups?( all| unread| read| since|)\b$/i, function (res) {
         var userid = res.message.user.id
@@ -182,8 +213,22 @@ module.exports = function (robot) {
         getNotificationsSumUp(userid, query)
     })
 
+    // todo: not tested
+    robot.on('showTrelloSumups', function (data, res) {
+        res.message.user.id
+        getNotificationsSumUp(userid, {})
+    })
+
 
     robot.respond(/trello my cards/i, function (res) {
+        trelloMyCardsListener(res)
+    })
+
+    robot.on('showTrelloCards', function ({ }, res) {
+        trelloMyCardsListener(res)
+    })
+
+    function trelloMyCardsListener(res) {
         var userid = res.message.user.id
         updateTrelloResources(userid).then(() => {
             listUserCards(userid)
@@ -193,9 +238,7 @@ module.exports = function (robot) {
              * so there is nothing to care about here 
              */
         })
-
-    })
-
+    }
 
 
     robot.on('trelloSumUp', function (userid, query, saveLastNotif) {
@@ -247,20 +290,21 @@ module.exports = function (robot) {
             })
     })
 
-
-
-
-
     robot.respond(/trello boards/i, function (res) {
         var userid = res.message.user.id
         listTeamBoards(userid)
     })
 
-    /* FOR DEBUGGING ONLY
-    robot.respond(/trello res/, res => {
-        updateTrelloResources(res.message.user.id).then(r => console.log())
+    robot.on('showTrelloBoards', function ({ }, res) {
+        var userid = res.message.user.id
+        listTeamBoards(userid)
     })
-    */
+
+    // FOR DEBUGGING ONLY
+    // robot.respond(/trello res/, res => {
+    //     updateTrelloResources(res.message.user.id).then(r => console.log())
+    // })
+
 
     robot.respond(/trello (disable|pause|stop|deactivate) webhook (.*)/i, function (res) {
         var webhookId = res.match[2].trim()
@@ -273,7 +317,7 @@ module.exports = function (robot) {
     })
 
     // The follow command is useful when changing hubot host (i.e. when testing with ngrok).
-    // Due to that, it's not uvailable through api.ai NLU/P 
+    // Due to that, it's not available through dialogflow  
     robot.respond(/trello update webhooks callback url/i, function (res) {
         // var webhookId = res.match[1].trim()
         var userid = res.message.user.id
@@ -293,6 +337,8 @@ module.exports = function (robot) {
         var webhookId = res.match[1].trim()
         deleteWebhook(res.message.user.id, webhookId)
     })
+
+    robot.on()
 
     // get the existing trello webhooks and display them
     robot.respond(/trello show webhooks/i, function (res) {
@@ -533,6 +579,9 @@ module.exports = function (robot) {
         })
     }
 
+    /* This function was inplemented due to that trello api did not provide any api call 
+     * that returns all the info of the board. ID's, names etc
+     */
     function updateTrelloResources(userid) {
         var credentials = getCredentials(userid)
         if (!credentials) {
@@ -569,7 +618,7 @@ module.exports = function (robot) {
                         card_members: true,
                         card_member_fields: 'all'
                         /* card_members is a nested card resource but for some reason it doen't work. 
-                         * Based on trello api website it should return the 
+                         * Based on trello api documentation it should return the 
                          * members resources assigned on each card.
                          * It might be usefull in the future. (e.g. Display assigned members on cards)
                          * More info: https://developers.trello.com/reference#cards-nested-resource
@@ -1467,10 +1516,10 @@ module.exports = function (robot) {
                     return robot.brain.userForId(id)
                 }
             } catch (e) {
-
+                robot.logger.error(`script: ${path.basename(__filename)} in getSlackUser() ` + e)
             }
-            return false
         }
+        return false
     }
 
     function dbFindAndModify(collection, query, sort, doc, options) {

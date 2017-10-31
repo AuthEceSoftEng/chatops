@@ -7,8 +7,10 @@ var cache = require('./cache.js').getCache()
 Promise.promisifyAll(mongoskin)
 
 // config
-var mongodb_uri = process.env.MONGODB_URI
-
+var mongodb_uri = process.env.MONGODB_URL || process.env.MONGOLAB_URI
+if (!process.env.MONGODB_URL) {
+    return
+}
 
 module.exports = (robot) => {
 
@@ -78,7 +80,7 @@ module.exports = (robot) => {
                         cache.set(id, { trello_last_notification: trello_last_notification })
                     }
 
-                    if (github_last_sumup_date){
+                    if (github_last_sumup_date) {
                         cache.set(id, { github_last_sumup_date: github_last_sumup_date })
                     }
                 })
@@ -158,9 +160,10 @@ module.exports = (robot) => {
     // TO BE DELETED
     // FOR DEBUGGING
     robot.respond(/show cache/, function (res) {
-
         console.log(cache.data)
     })
+
+
     // ***********************************************
 
 

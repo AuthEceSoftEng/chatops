@@ -27,7 +27,7 @@ module.exports = robot => {
                 // avoid msgs from slackbot (i.e. furling links). 
                 apiaiAsk(msg, res)
             }
-            console.log('api.ai', msg)
+            console.log('No listener match. '+userid +': ' + msg)
         }
     })
 

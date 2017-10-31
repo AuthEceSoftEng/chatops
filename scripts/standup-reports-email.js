@@ -1,3 +1,5 @@
+// Dialogflow (api.ai) not set
+
 // Commands: 
 //   `standups email report` - Send weedkly standups in CSV file to the preconfigured email 
 //   `standups email weekly report` - Send weedkly standups in CSV file to the preconfigured email 
@@ -5,7 +7,6 @@
 //   `standups email report (to) <email>` - Send weedkly standups in CSV file to the given email 
 //   `standups email weekly report (to) <email>` - Send weedkly standups in CSV file to the given email 
 //   `standups email today report (to) <email>` - Send daily standups in CSV file to the given email 
-
 
 'use strict'
 

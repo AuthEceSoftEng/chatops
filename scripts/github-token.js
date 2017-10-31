@@ -3,16 +3,21 @@ var GitHubApi = require('github')
 var mongoskin = require('mongoskin');
 var cache = require('./cache.js').getCache()
 var oauth = require("oauth").OAuth2;
+var c = require('./config.json')
+var path = require('path')
 
 var bot_host = process.env.HUBOT_HOST_URL
-var mongodb_uri = process.env.MONGODB_URI
+var mongodb_uri = process.env.MONGODB_URL
 var client_id = process.env.GITHUB_APP_CLIENT_ID;
 var client_secret = process.env.GITHUB_APP_CLIENT_SECRET;
 var hostUrl = 'http://github.com/login/oauth/authorize';
 var authorization_base_url = 'https://github.com/login/oauth/authorize'
 var token_url = 'https://github.com/login/oauth/access_token'
 
-
+if (!bot_host || !mongodb_uri || !client_id || !client_secret) {
+    console.log('warning','script: '+path.basename(__filename)+' is disabled due to missing env vars')
+    return
+}
 
 var OAuth2 = new oauth(
     client_id,
@@ -21,6 +26,7 @@ var OAuth2 = new oauth(
     "login/oauth/authorize",
     "login/oauth/access_token");
 
+// TODO: remove github dependency and convert it to the classic 'request' method. (like github-integration.js)
 var github = new GitHubApi({
     /* optional */
     // debug: true,
@@ -40,7 +46,6 @@ module.exports = (robot) => {
 
     robot.router.get('/auth/github/callback', function (req, res) {
         var userid = JSON.parse(req.query.state).userid;
-        var username = JSON.parse(req.query.state).username;
 
         var code = req.query.code;
 
@@ -48,26 +53,20 @@ module.exports = (robot) => {
             if (err) {
                 console.log(err);
             }
-
-            // ****
-            // TODO:
-            // BETTER Handling of promises!!
-            // ****
-
             var db = mongoskin.MongoClient.connect(mongodb_uri);
 
             github.authenticate({
                 "type": "token",
                 "token": access_token
             })
-            github.users.get({}, function (err, res) {
-                var github_username = res.data.login
+            github.users.get({}, function (err, gh_res) {
+                var github_username = gh_res.data.login
                 db.bind('users').findAndModifyAsync(
                     { _id: userid },
                     [["_id", 1]],
                     { $set: { github_username: github_username } },
                     { upsert: true })
-                    .then(res => { })
+                    .then(gh_res => { })
                     .catch(err => {
                         robot.logger.error(err)
                         if (c.errorsChannel) {
@@ -90,7 +89,8 @@ module.exports = (robot) => {
                     { $set: { github_token: encryptedToken } },
                     { upsert: true })
                     .then(res => {
-                        robot.logger.info(`${username}'s GitHub Token Added to DB!`)
+                        var username = robot.brain.userForId(userid).name
+                        robot.logger.info(`${username}'s GitHub Token Added to DB.`)
                         robot.emit('refreshBrain') //refresh brain to update tokens       
                     })
                     .catch(err => {
@@ -103,9 +103,9 @@ module.exports = (robot) => {
                     .done(() => {
                         db.close()
                     })
-            });
-        });
-        res.redirect('');
+            })
+        })
+        res.redirect('/token%20received');
     });
 
 }

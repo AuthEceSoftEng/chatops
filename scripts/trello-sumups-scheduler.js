@@ -15,7 +15,10 @@ var cache = require('./cache.js').getCache()
 var async = require('async')
 var c = require('./config.json')
 // config
-var mongodb_uri = process.env.MONGODB_URI
+var mongodb_uri = process.env.MONGODB_URL
+if (!mongodb_uri) {
+    return
+}
 
 module.exports = (robot) => {
 
@@ -189,7 +192,7 @@ module.exports = (robot) => {
     /*************************************************************************/
     /*                        sumups updating functions                      */
     /*************************************************************************/
-    
+
     function changeTrelloSumupDaysListeners(days, res) {
         var userid = res.message.user.id
         var cronDays = getCronDays(days)

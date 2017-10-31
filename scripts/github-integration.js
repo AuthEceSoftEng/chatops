@@ -1,18 +1,18 @@
 // Commands:
-//	 `github login`
-//	 `github repos`
-//	 `github (last <num>) (open|closed|all|mentioned) issues of repo <repo_name>`
-//	 `github comments issue <num> repo <repo>`
-//	 `github (open|closed|all) pull requests repo <repo>` - Default: open
-//	 `github (open|closed|all) pull requests all repos`
-//	 `github (last <num>) commits repo <repo>`
-//	 `github create|open issue`
-// 	 `github repo <repo> create issue <title> `
-// 	 `github repo <repo> issue <num> add comment`
-// 	 `github reply <comment>` - reply instantly to the last issue comment you've been mentioned
-//	 `github close` - instanlty close the last issue you've been mentioned
-// 	 `github sumup (open|closed|all)(since)`
-// 	 `github close|reopen issue <num> repo <repo>`
+//	 `github login` - Login to GitHub. 
+//	 `github repos` - View GitHub's account/organization accessible repositories. 
+//	 `github repo <repo_name> (last <num>) (open|closed|all|mentioned) issues` - View Issues of specific rerpo. 
+//	 `github repo <repo> issue <issue_num> comments` - View comments of a GitHub Issue. 
+//	 `github (open|closed|all) pull requests repo <repo>` - View GitHub Pull Requests of specific reopsitory. Default: open.
+//	 `github (open|closed|all) pull requests all repos` - View GitHub Pull Requests of all accesible repositories.
+//	 `github (last <num>) commits repo <repo>` - View GitHub Commits of a specific repository.
+//	 `github create|open issue` - Create a GitHub issue. 
+// 	 `github repo <repo> create issue <title> ` - Create a GitHub issue.
+// 	 `github repo <repo> issue <num> add comment` - Add a comment to a GitHub issue.
+// 	 `github reply <comment>` - reply instantly to the last issue comment you've been mentioned.
+//	 `github close` - instanlty close the last issue you've been mentioned.
+// 	 `github sumup (open|closed|all)(since)` - View GitHub sumup.
+// 	 `github close|reopen issue <num> repo <repo>` - Change status of a GitHub issue. 
 
 
 'use strict';
@@ -37,10 +37,14 @@ var mongoskin = require('mongoskin')
 Promise.promisifyAll(mongoskin)
 
 // config
-var mongodb_uri = process.env.MONGODB_URI
+var mongodb_uri = process.env.MONGODB_URL
 var bot_host_url = process.env.HUBOT_HOST_URL;
 var GITHUB_API = 'https://api.github.com'
 var githubURL = 'https://www.github.com/'
+
+if (!mongodb_uri || !bot_host_url) {
+	return
+}
 
 module.exports = function (robot) {
 
@@ -74,10 +78,10 @@ module.exports = function (robot) {
 
 
 
-	robot.respond(/github( last (\d+)|) (open |closed |all |mentioned |)issues?( of)? repo (.*)/i, function (res) {
-		var repo = res.match.pop().replace(/"/g, '')
-		var issuesCnt = res.match[2]
-		var parameter = res.match[3].trim()
+	robot.respond(/github repo (.*)( last (\d+)|) (open |closed |all |mentioned |)issues?/i, function (res) {
+		var repo = res.match[1].replace(/"/g, '')
+		var issuesCnt = res.match[3]
+		var parameter = res.match[4].trim()
 		listGithubIssuesListener(res, repo, parameter, issuesCnt)
 	})
 
@@ -100,10 +104,8 @@ module.exports = function (robot) {
 		listRepoIssues(userid, repo, paramsObj, issuesCnt)
 	}
 
-
-
-	robot.respond(/github comments( of)? issue (\d+)( of)? repo (.*)/i, function (res) {
-		var repo = res.match.pop().replace(/"/g, '')
+	robot.respond(/github repo (.*) issue (\d+) comments/i, function (res) {
+		var repo = res.match[1].replace(/"/g, '')
 		var issueNum = res.match[2]//.trim()
 		githubIssueCommentsListener(res, issueNum, repo)
 	})
@@ -129,7 +131,7 @@ module.exports = function (robot) {
 		listGithubPullRequestsListener(res, repo, state)
 	})
 
-	// api.ai disabled
+	// api.ai disabled -> not needed (?)
 	robot.on('listGithubPullRequests', (data, res) => {
 		var state = data.parameters.state.replace(/"/g, '')
 		var repo = data.parameters.repo.replace(/"/g, '')
@@ -168,17 +170,15 @@ module.exports = function (robot) {
 		listRepoCommits(userid, repo, commitsCnt)
 	})
 
-	// api.ai disabled
+	// dialogflow todo: not tested
 	robot.on('listGithubRepoCommits', function (data, res) {
 		var userid = res.message.user.id
-		var commitsCnt = data.parameters.commitsCnt
-		var repo = data.parameters.repo
+		var commitsCnt = data.parameters.limits
+		var repo = data.parameters.repoName
 		listRepoCommits(userid, repo)
 	})
 
 
-
-	// could be replaced with api.ai
 	robot.respond(/\bgithub\s(create|open)\sissue\b$/i, function (res) {
 		var userid = res.message.user.id
 		dialog.startDialog(switchBoard, res, convModel.createIssue)
@@ -190,6 +190,20 @@ module.exports = function (robot) {
 				robot.logger.error(error)
 			})
 	})
+
+	// dialogflow todo: not tested
+	robot.on('createGithubIssue', (data, res) => {
+		var userid = res.message.user.id
+		dialog.startDialog(switchBoard, res, convModel.createIssue)
+			.then(data => {
+				createIssue(userid, data.repo, data.title, data.body)
+			})
+			.catch(error => {
+				res.reply(error.message)
+				robot.logger.error(error)
+			})
+	})
+
 
 	robot.respond(/github repo (.*) create issue (.*)/i, function (res) {
 		var userid = res.message.user.id
@@ -203,11 +217,6 @@ module.exports = function (robot) {
 		})
 	})
 
-	// api.ai disabled
-	robot.on('createGithubIssue', (data, res) => {
-	})
-
-
 
 	robot.respond(/github repo (.*) issue (\d+)( add)? comment/i, function (res) {
 		var userid = res.message.user.id
@@ -219,28 +228,37 @@ module.exports = function (robot) {
 			var commentText = res.match[1]
 			createIssueComment(userid, repo, issueNum, commentText)
 		})
-
 	})
 
-	// api.ai disabled
+	// dialogflow todo: not tested
 	robot.on('addGithubIssueComment', (data, res) => {
+		var userid = res.message.user.id
+		var issueNum = data.parameter.issueNum
+		var repo = data.parameter.repoName
+		res.reply('Add your comment here:')
+		var dialog = switchBoard.startDialog(res, 1000 * 60 * 10)
+		dialog.addChoice(/ ((.*\s*)+)/i, function (res) {
+			var commentText = res.match[1]
+			createIssueComment(userid, repo, issueNum, commentText)
+		})
 	})
 
 
 
 	// reply instantly to the last github issue mentioned
 	robot.respond(/github reply (.*)/i, function (res) {
-		var userid = res.message.user.id
 		var commentText = res.match[1]
+		var userid = res.message.user.id
 		try {
 			var repo = getConversationContent(userid, 'github_last_repo')
 			var issue = getConversationContent(userid, 'github_last_issue')
 			if (repo && issue) {
 				createIssueComment(userid, repo, issue, commentText)
 			} else {
-				throw null
+				throw `<github reply> command works only after mention on issue comment. (${res.message.user.name})`
 			}
 		} catch (error) {
+			robot.logger.error(error)
 			robot.messageRoom(userid, 'Sorry but i couldn\'t process your query.')
 		}
 	})
@@ -249,16 +267,24 @@ module.exports = function (robot) {
 	// close an issue instantly to the last github issue mentioned
 	robot.respond(/\bgithub close$\b/i, function (res) {
 		var userid = res.message.user.id
-		var commentText = res.match[1]
 		try {
-			var repo = cache.get(userid).github_last_repo
-			var issue = cache.get(userid).github_last_issue
+			var repo = getConversationContent(userid, 'github_last_repo')
+			var issue = getConversationContent(userid, 'github_last_issue')
 			if (repo && issue) {
-				updateIssue(userid, repo, issue, { state: 'close' })
+				var dialog = switchBoard.startDialog(res);
+				res.reply(`Close issue ${issue} of repo ${repo}.\nAre you sure? (y/n)`)
+				//Provide choices for the next step, wait for the user.
+				dialog.addChoice(/y/i, function (res2) {
+					updateIssue(userid, repo, issue, { state: 'close' })
+				})
+				dialog.addChoice(/n/i, function (res2) {
+					res2.reply('ok then.')
+				})
 			} else {
-				throw null
+				throw `<github close> command works only after mention on issue comment. (${res.message.user.name})`
 			}
 		} catch (error) {
+			robot.logger.error(error)
 			robot.messageRoom(userid, 'Sorry but i couldn\'t process your query.')
 		}
 	})
@@ -313,7 +339,7 @@ module.exports = function (robot) {
 	})
 
 	// api.ai disabled
-	robot.on('changeGithubIssueStatus', function(data, res){
+	robot.on('changeGithubIssueStatus', function (data, res) {
 
 	})
 

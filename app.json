@@ -15,7 +15,7 @@
       "description": "Enables Hubot integration with Slack",
       "required": true
     },
-        "ENCRYPTION_ALGORITHM": {
+	"ENCRYPTION_ALGORITHM": {
       "description": "Algorithm for the data encryption (like Tokens)",
             "required":true,
       "value": "aes-256-ctr"
@@ -26,19 +26,31 @@
       "value":"qg31qsANkNtcTdL9WrLAHSRG3Zs1oaSg"
     },
     "APIAI_TOKEN": {
-      "description": "Enables Hubot integration with api.ai",
+      "description": "Enables Hubot integration with Dialogflow (ex api.ai)",
       "required": false
     },
     "GITHUB_APP_ID": {
       "description": "ID of the registered Github App",
       "required": false
     },
-    "GITHUB_PEM_DIR":{
-      "description": "Direcory of Github App private key file (.pem)",
+    "GITHUB_PEM":{
+      "description": "GitHub App's Private Key in text format",
       "required": false
     },
-    "GITHUB_WEBHOOK_SECRET":{
+    "GITHUB_PEM_DIR":{
+      "description": "Directory of Github App private key file (.pem)",
+      "required": false
+    },
+    "GITHUB_WEBHOOK_SECRET": {
       "description": "If you use webhook secret, enter here the secret string.",
+      "required": false
+    },
+    "GITHUB_APP_CLIENT_ID": {
+      "description": "Needed for user authentication (OAuth). \nCan be found at the botton of your registered GitHub App settings page",
+      "required": false
+    },
+	"GITHUB_APP_CLIENT_SECRET": {
+      "description": "Needed for user authentication (OAuth). \nCan be found at the botton of your registered GitHub App settings page",
       "required": false
     },
     "HUBOT_HOST_URL": {

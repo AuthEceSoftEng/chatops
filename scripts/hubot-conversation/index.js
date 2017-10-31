@@ -2,8 +2,7 @@
  * Froked from lmarkus 
  */
 'use strict';
-var Dialog = require('./Dialog'),
-    debug = require('debuglog')('HUBOT_CONVERSATION');
+var Dialog = require('./Dialog')
 
 module.exports = function Conversation(bot, type) {
 
@@ -19,12 +18,10 @@ module.exports = function Conversation(bot, type) {
         function matcher(msg) {
             var id = getId(msg);
             //If a dialog is currently open with this user, accept the message.
-            debug('Checking if talking to   ' + id + ' = ' + !!_talkingTo[id]);
             return _talkingTo[id];
         },
         function spy(msg) {
             var id = getId(msg.message);
-            debug('Accepting message for ', id);
             _talkingTo[id].receive(msg);
         }
     );

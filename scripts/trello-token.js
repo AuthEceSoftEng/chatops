@@ -1,9 +1,8 @@
-// Commanfs: 
+// Commands: 
 // `trello login`
 
 var slackMsgs = require('./slackMsgs.js');
 var url = require('url');
-var Trello = require('node-trello');
 var Promise = require('bluebird');
 var request = require('request-promise');
 var encryption = require('./encryption.js');
@@ -12,12 +11,16 @@ var cache = require('./cache.js').getCache()
 Promise.promisifyAll(mongo);
 
 // config
-var uri = process.env.MONGODB_URI;
+var uri = process.env.MONGODB_URL;
 var trelloKey = process.env.HUBOT_TRELLO_KEY;
 var trello_url = 'https://api.trello.com'
 var app_key = process.env.HUBOT_TRELLO_KEY;
 var oauth_secret = process.env.HUBOT_TRELLO_OAUTH;
 var host_url = process.env.HUBOT_HOST_URL
+
+if (!uri || !trelloKey || !app_key || !oauth_secret || !host_url) {
+    return
+}
 
 module.exports = function (robot) {
 
@@ -28,6 +31,7 @@ module.exports = function (robot) {
     var TrelloOAuth = require('./trello-oauth.js')
     var tOAuth = new TrelloOAuth(app_key, oauth_secret, loginCallback, 'Hubot', scope, expr);
 
+    // TODO: move this listener to trello-integration and emit a trelloOAuthLogin event. 
     robot.respond(/trello login/, function (res) {
         trelloOAuthLogin(res.message.user.id)
     })
@@ -80,7 +84,6 @@ module.exports = function (robot) {
                             { $set: { trello_token: token, trello_username: res.username, trello_member_id: res.id } },
                             { upsert: true })
                             .then(res => {
-                                // console.log(res)
                             }).catch(err => { //TODO better error handling
                                 console.log(err)
                             }).done(() => {

@@ -1,29 +1,33 @@
 var slackMsg = require('./slackMsgs.js')
 
 var jenkins_url = process.env.JENKINS_URL
-var HUBOT_JENKINS_COLOR_ABORTED = process.env.HUBOT_JENKINS_COLOR_ABORTED || "warning"
-var HUBOT_JENKINS_COLOR_FAILURE = process.env.HUBOT_JENKINS_COLOR_FAILURE || "danger"
-var HUBOT_JENKINS_COLOR_FIXED = process.env.HUBOT_JENKINS_COLOR_FIXED || "#d5f5dc"
-var HUBOT_JENKINS_COLOR_STARTED = process.env.HUBOT_JENKINS_COLOR_STARTED || "#b2f7c1"
-var HUBOT_JENKINS_COLOR_STILL_FAILING = process.env.HUBOT_JENKINS_COLOR_STILL_FAILING || "danger"
-var HUBOT_JENKINS_COLOR_SUCCESS = process.env.HUBOT_JENKINS_COLOR_SUCCESS || "good"
-var HUBOT_JENKINS_COLOR_DEFAULT = process.env.HUBOT_JENKINS_COLOR_DEFAULT || "#ffe094"
+var HUBOT_JENKINS_COLOR_ABORTED = "warning"
+var HUBOT_JENKINS_COLOR_FAILURE = "danger"
+var HUBOT_JENKINS_COLOR_FIXED = "#d5f5dc"
+var HUBOT_JENKINS_COLOR_STARTED = "#b2f7c1"
+var HUBOT_JENKINS_COLOR_STILL_FAILING = "danger"
+var HUBOT_JENKINS_COLOR_SUCCESS = "good"
+var HUBOT_JENKINS_COLOR_DEFAULT = "#ffe094"
+
+if (!jenkins_url) {
+    return
+}
 
 module.exports = function (robot) {
 
     return robot.router.post("/hubot/jenkins-notifications", function (req, res) {
         var notificationIP = req.headers['x-forward-for']
-        
+
         /* doesn't work when x-forward-for return ip and jenkins_url is a url. 
          *  must modified and checked before use the bellow if-statement. 
-         */ 
+         */
         // if (jenkins_url.includes(notificationIP)){
-            handleNotification(req,res)
+        handleNotification(req, res)
         // }
     })
 
 
-    function handleNotification(req,res) {
+    function handleNotification(req, res) {
         var color, params, payload, status
         var room = null
         if (req.query.room && !req.query.user) {

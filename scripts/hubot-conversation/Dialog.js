@@ -4,8 +4,7 @@
 'use strict';
 var util = require('util'),
     c = require('./constants'),
-    EventEmitter = require('events').EventEmitter,
-    debug = require('debuglog')('HUBOT_CONVERSATION');
+    EventEmitter = require('events').EventEmitter
 
 /**
  * A multiple-choice dialog. Keeps track of a set of regular expresions to match, and their function handlers.
@@ -63,9 +62,7 @@ var Dialog = function Dialog(originalMessage, timeoutValue, timeoutMessage) {
             matched = false;
 
         //Stop at the first match in the order in which they were added.
-        debug('Receiving message', choices);
         matched = choices.some(function (choice) {
-            debug('Checking ' + text + ' vs ' + JSON.stringify(choice));
             var match = text.match(choice.regex);
             if (match) { //Accept message
 
@@ -111,7 +108,6 @@ var Dialog = function Dialog(originalMessage, timeoutValue, timeoutMessage) {
      * Clears the choices array
      */
     this.resetChoices = function resetChoices() {
-        debug('Reseting Choices');
         choices = [];
     };
 

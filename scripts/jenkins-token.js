@@ -13,8 +13,12 @@ var cache = require('./cache.js').getCache()
 var request = require('request-promise')
 
 // config
-var mongodb_uri = process.env.MONGODB_URI
+var mongodb_uri = process.env.MONGODB_URL
 var jenkins_url = process.env.JENKINS_URL
+
+if (!jenkins_url || !mongodb_uri) {
+    return
+}
 
 module.exports = robot => {
 

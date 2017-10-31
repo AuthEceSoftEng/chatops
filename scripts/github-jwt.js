@@ -12,25 +12,29 @@ var cache = require('./cache.js').getCache()
 Promise.promisifyAll(mongoskin)
 
 // config
-var appID = (process.env.GITHUB_APP_ID || c.GithubApp.AppId)
-var mongodb_uri = process.env.MONGODB_URI
-var db = mongoskin.MongoClient.connect(mongodb_uri)
+var appID = process.env.GITHUB_APP_ID
+var mongodb_uri = process.env.MONGODB_URL
+var privateKeyDir = process.env.GITHUB_PEM_DIR
+var privateKeyText = process.env.GITHUB_PEM
 
+if (!appID || !mongodb_uri || (!privateKeyDir && !privateKeyText)) {
+    console.log('warning', 'script: ' + path.basename(__filename) + ' is disabled due to missing env vars')
+    return
+}
+    
 module.exports = robot => {
 
     // runs once the bot starts 
     generateJWToken()
 
-    // runs on demand
+    // runs on demand from other scritps
     robot.on('generateJWToken', () => {
-        robot.logger.info('emit: generateJWToken')
         generateJWToken()
     })
 
     // generate a new token every 30 minutes. (Tokens expire after 60 minutes)
     var job = new CronJob('0 */30 * * * *',
         function () {
-            robot.logger.info('cronjob for generateJWToken')
             generateJWToken()
         },
         function () { return null; }, /* This function is executed when the job stops */
@@ -40,19 +44,19 @@ module.exports = robot => {
 
 
     function generateJWToken() {
-        // TODO
-        var privateKeyDir = (c.GithubApp.privateKeyDir || process.env.GITHUB_KEY_DIR)
-        var cert = fs.readFileSync(path.resolve(__dirname, c.GithubApp.privateKeyDir));  // the get private key
-        // end of todo
+        if (privateKeyText) {
+            var cert = privateKeyText.replace(/\\n/g, '')
+        } else {
+            var cert = fs.readFileSync(privateKeyDir, 'utf8')  // the get private key
+        }
 
-        var date = new Date();
+        var date = new Date()
         var payload = {
             iat: Math.round(new Date().getTime() / 1000),
             exp: Math.round(new Date().getTime() / 1000) + (10 * 60),
             iss: appID
         }
         var JWToken = jwt.sign(payload, cert, { algorithm: 'RS256' })
-        console.log('\n\nJWT=' + JWToken)
         var options = {
             url: 'https://api.github.com/app/installations',
             headers: {
@@ -73,9 +77,9 @@ module.exports = robot => {
                     generateInstallationToken(installation_id, installation_account, JWToken)
                 }
             })
-            .catch(function (err) {
-                console.log(err)
-            });
+            .catch(error => {   
+                robot.logger.error('JWT error: ' + error)
+            })
     }
 
     function generateInstallationToken(installation_id, installation_account, JWToken) {
@@ -95,9 +99,9 @@ module.exports = robot => {
                 // store token in cache
                 var token = res.token;
                 cache.set(`GithubApp`, [{ id: installation_id, account: installation_account, token: token }])
+                robot.logger.info('Github App installation token created.')
             })
             .catch(function (err) {
-                // print eror 
                 console.log('ERROR: ', err)
             })
     }

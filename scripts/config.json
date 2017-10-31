@@ -4,9 +4,7 @@
     "errorMessage": ":disappointed: An error occured. Please check server's Logs. ",
     "tokenAddedMessage": "Your token has been succesfully received! :thumbsup:",
     "GithubApp": {
-        "tokenStoredMsg": "Github App Generated and Stored a new Token",
-        "privateKeyDir": "hubot-integration.2017-07-25.private-key.pem",
-        "AppId": 4664
+        "tokenStoredMsg": "Github App Generated and Stored a new Token"
     },
     "jenkins": {
         "jobNotFoundMsg": "Job/Build not found. :thinking_face: Please try again.\nMake sure to tell me the correct job/build name.",
@@ -21,7 +19,7 @@
         "name": "Daily Report",
         "days": "1-5",
         "channel": "general",
-        "time": "09:30",
+        "time": "10:00",
         "active": true,
         "questions": [
             {
@@ -44,15 +42,15 @@
     },
     "defaultTrelloSumUp": {
         "_id": "defaultSumUp",
-        "days": "*",
-        "time": "17:24",
+        "days": "1-5",
+        "time": "09:35",
         "active": true,
         "channel": "general"
     },
     "defaultGithubSumUp": {
         "_id": "defaultSumUp",
-        "days": "*",
-        "time": "17:24",
+        "days": "1-5",
+        "time": "09:30",
         "active": true,
         "channel": "general"
     },

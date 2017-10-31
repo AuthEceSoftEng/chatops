@@ -3,7 +3,6 @@
 
 
 
-var Trello = require('node-trello');
 var encryption = require('./encryption.js');
 var Promise = require("bluebird");
 var q = require('q')

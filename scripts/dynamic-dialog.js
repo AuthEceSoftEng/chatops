@@ -67,9 +67,6 @@ function startDialog(switchBoard, res, convModel, answers = {}, n = 0) {
 
 }
 
-function createIssue(userid, data) {
-    console.log(userid + ' ', data)
-}
 
 function isNumber(obj) { return !isNaN(parseFloat(obj)) }
 

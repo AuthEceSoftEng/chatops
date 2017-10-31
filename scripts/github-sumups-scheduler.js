@@ -1,10 +1,10 @@
 // Commands:
-//   `github sumups info|settings`
-//   `github sumups change|edit|update channel (to) <channel_name>`
-//   `github sumups change|edit|update time (to) <HH:MM>`
-//   `github sumups change|edit|update days (to) <days>`
-//   `github sumups pause|deactivate|disable`
-//   `github sumups resume|activate|enable`
+//   `github sumups info|settings` - View GitHub sumups settings.  
+//   `github sumups change|edit|update channel (to) <channel_name>` - Change GitHub sumups channel.
+//   `github sumups change|edit|update time (to) <HH:MM>` - Change GitHub sumups time.
+//   `github sumups change|edit|update days (to) <days>` - Change GitHub sumups days.
+//   `github sumups pause|deactivate|disable` - Disable GitHub sumups scheduler.
+//   `github sumups resume|activate|enable` - Enable GitHub sumups scheudler. 
 
 var CronJob = require('cron').CronJob;
 var mongoskin = require('mongoskin')
@@ -14,9 +14,12 @@ var path = require('path')
 var cache = require('./cache.js').getCache()
 var async = require('async')
 var c = require('./config.json')
-// config
-var mongodb_uri = process.env.MONGODB_URI
 
+// config
+var mongodb_uri = process.env.MONGODB_URL
+if (!mongodb_uri){
+    return
+}
 module.exports = (robot) => {
 
     async.series([
@@ -35,7 +38,7 @@ module.exports = (robot) => {
     /*                             Listeners                                 */
     /*************************************************************************/
 
-    robot.respond(/github sum-?ups? (show|get|give me)? (info|settings)/i, function (res) {
+    robot.respond(/github sum-?ups?( show| get| give me|) (info|settings)/i, function (res) {
         var userid = res.message.user.id
         showSumupInfo(userid)
     })

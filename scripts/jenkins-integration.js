@@ -1,13 +1,13 @@
 // Configuration:
 // Commands:
 //   `JENKINS`
-//   `jenkins builds of job <job name>`
-//   `jenkins last successful build of job <job name>`
-//   `jenkins last completed build of job <job name>`
-//   `jenkins last build of job <job name>`
-//   `jenkins build info <build number> of job <job name>`
-//   `jenkins build console <build number> of job <job name>`
-//   `jenkins build job <job_name>`
+//   `jenkins builds <job name>`
+//   `jenkins last successful build <job name>`
+//   `jenkins last completed build <job name>`
+//   `jenkins last build <job name>`
+//   `jenkins build <build number> <job name>`
+//   `jenkins build <build number> console <job name>`
+//   `jenkins start build <job_name>`
 //   `jenkins jobs`
 
 
@@ -23,10 +23,14 @@ var color = require('./colors.js')
 
 // config
 var jenkins_url = process.env.JENKINS_URL
-var url = process.env.JENKINS_URL.split('//');
-var uri = url[1]
-var protocol = url[0];
 var df = "dd/mm/yyyy, hh:MM TT"
+if (!jenkins_url) {
+    return
+} else {
+    var url = process.env.JENKINS_URL.split('//');
+    var uri = url[1]
+    var protocol = url[0];
+}
 
 module.exports = function (robot) {
 
@@ -34,7 +38,7 @@ module.exports = function (robot) {
     /*                              Listeners                                */
     /*************************************************************************/
 
-    robot.respond(/jenkins builds of job (.*)/i, function (res) {
+    robot.respond(/jenkins builds (.*)/i, function (res) {
         var userid = res.message.user.id
         var jobName = res.match[1]
         getAllBuilds(userid, jobName)
@@ -47,7 +51,7 @@ module.exports = function (robot) {
     })
 
 
-    robot.respond(/jenkins last success?f?u?l? build of job (.*)/i, function (res) {
+    robot.respond(/jenkins last success?f?u?l? build (.*)/i, function (res) {
         var userid = res.message.user.id
         var jobName = res.match[1]
         getLastSuccessfulBuild(userid, jobName)
@@ -60,7 +64,7 @@ module.exports = function (robot) {
     })
 
 
-    robot.respond(/jenkins last completed? build of job (.*)/i, function (res) {
+    robot.respond(/jenkins last completed? build (.*)/i, function (res) {
         var userid = res.message.user.id
         var jobName = res.match[1]
         getLastCompletedBuild(userid, jobName)
@@ -73,7 +77,7 @@ module.exports = function (robot) {
     })
 
 
-    robot.respond(/jenkins last build of job (.*)/i, function (res) {
+    robot.respond(/jenkins last build (.*)/i, function (res) {
         var userid = res.message.user.id
         var jobName = res.match[1]
         getLastBuildInfo(userid, jobName)
@@ -86,7 +90,7 @@ module.exports = function (robot) {
     })
 
 
-    robot.respond(/jenkins build info (.*) of job (.*)/i, function (res) {
+    robot.respond(/jenkins build (.*) (.*)/i, function (res) {
         var userid = res.message.user.id
         var jobName = res.match[2]
         var buildNum = res.match[1]
@@ -101,7 +105,7 @@ module.exports = function (robot) {
     })
 
 
-    robot.respond(/jenkins build console (\d+) of job (.*)/, function (res) {
+    robot.respond(/jenkins build (\d+) console (.*)/, function (res) {
         var userid = res.message.user.id
         var jobName = res.match[2]
         var buildNum = res.match[1]
@@ -116,7 +120,7 @@ module.exports = function (robot) {
     })
 
 
-    robot.respond(/jenkins build job (.*)/, function (res) {
+    robot.respond(/jenkins start build (.*)/, function (res) {
         var userid = res.message.user.id
         var jobName = res.match[1]
         buildJob(userid, jobName)
@@ -139,7 +143,7 @@ module.exports = function (robot) {
         getAllJobs(userid)
     })
 
-    
+
     /*************************************************************************/
     /*                            API CALLS                                  */
     /*************************************************************************/
