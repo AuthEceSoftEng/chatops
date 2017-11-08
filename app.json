@@ -73,17 +73,16 @@
       "description": "Jenkins full host url",
       "required": false
     },
-    {
     "HUBOT_EMAIL": {
       "description": "An email account for hubot and standup reports function. (tested: outlook, gmail)",
-      "required": false},
-    {
+      "required": false
+    },
     "HUBOT_EMAIL_PASS": {
       "description": "Password of hubot email account",
-      "required": false},
-    {
+      "required": false
+    },
      "STANDUPS_EMAIL":{
-    "description":"a preconfigure email for sending standups reports", 
+       "description":"a preconfigure email for sending standups reports", 
        "required":false
      }
     }
